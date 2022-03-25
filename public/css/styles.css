@@ -1,23 +1,9 @@
 .card {
   display: inline-block;
-  width: 200px;
-}
-
-h1 {
-  color: red;
-}
-
-.book-img {
   width: 150px;
-}
-
-.book-div {
-  width: 150px;
-  display: inline-block;
   vertical-align: top;
-  margin: 0 5px;
 }
 
-.book-title {
-  font-weight: bold;
+.card-img {
+  width: 150px;
 }
