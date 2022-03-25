@@ -22,16 +22,14 @@ app.get("/", (req, res) => {
     .then((books) => {
       let unreadBooks = [];
       for (let i = 0; i < books.length; i++) {
-        let book = response.results[i];
+        let book = books[i];
         let bookInfo = extractBookInfo(book);
-        books.push(bookInfo);
+        unreadBooks.push(bookInfo);
       }
       res.render("home", { data: unreadBooks });
     })
     .catch((e) => console.log(e));
 });
-
-app.get("/test", (req, res) => {});
 
 // return a random unread book in the database
 app.get("/random", (req, res) => {
@@ -58,6 +56,7 @@ app.get("/random", (req, res) => {
             }
             googleBookCover = firstResult.imageLinks.thumbnail;
           }
+          // overrides existing book cover with Google Books API book cover
           if (googleBookCover) {
             unreadBook.bookCover = googleBookCover;
           }
@@ -97,7 +96,7 @@ async function getBooks(status) {
   return response.results;
 }
 
-// get title, book cover, author, and owned formats from a book record in database
+// get title, book cover, author, owned formats, and Notion URL from a book record in database
 function extractBookInfo(book) {
   let bookProps = book.properties;
   let title = bookProps["Title"].title[0];
@@ -118,6 +117,7 @@ function extractBookInfo(book) {
     bookCover: bookCover,
     author: author,
     ownedFormats: ownedFormats,
+    url: book.url,
   };
 }
 
