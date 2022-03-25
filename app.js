@@ -41,7 +41,7 @@ async function get_books(res) {
   }
 }
 
-// get title, book cover, and author from a book record in database
+// get title, book cover, author, and owned formats from a book record in database
 function extractBookInfo(book) {
   let bookProps = book.properties;
   let title = bookProps["Title"].title[0];
@@ -53,7 +53,16 @@ function extractBookInfo(book) {
   let author = bookProps["Author"].rich_text[0];
   author = author ? author.plain_text : "Unknown";
 
-  return { title: title, bookCover: bookCover, author: author };
+  let owned = bookProps["Owned"].multi_select;
+  let ownedFormats = [];
+  owned.forEach((format) => ownedFormats.push(format.name));
+
+  return {
+    title: title,
+    bookCover: bookCover,
+    author: author,
+    ownedFormats: ownedFormats,
+  };
 }
 
 app.get("/", function (req, res) {

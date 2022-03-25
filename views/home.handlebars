@@ -5,6 +5,11 @@
       <img src={{bookCover}} class="card-img" alt="book cover for {{title}}" />
       <div class="card-body">
         <p class="card-text">{{title}} by {{author}}</p>
+        <ul class="owned-formats">
+          {{#each ownedFormats}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
       </div>
     </div>
   {{/each}}

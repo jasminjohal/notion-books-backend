@@ -7,3 +7,8 @@
 .card-img {
   width: 150px;
 }
+
+.owned-formats {
+  list-style-type: none;
+  padding: 0;
+}
