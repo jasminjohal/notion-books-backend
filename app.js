@@ -8,21 +8,53 @@ const databaseId = process.env.NOTION_DATABASE_ID;
 const express = require("express");
 const exphbs = require("express-handlebars");
 const app = express();
+app.use(express.static(path.join(__dirname, "/public")));
 
 const { data } = require("jquery");
 
 app.engine("handlebars", exphbs());
 app.set("view engine", "handlebars");
 
-app.use(express.static(path.join(__dirname, "/public")));
+// return all unread books in database
+app.get("/", (req, res) => {
+  getBooks("To Read")
+    .then((books) => {
+      let unreadBooks = [];
+      for (let i = 0; i < books.length; i++) {
+        let book = response.results[i];
+        let bookInfo = extractBookInfo(book);
+        books.push(bookInfo);
+      }
+      res.render("home", { data: unreadBooks });
+    })
+    .catch((e) => console.log(e));
+});
 
-async function getBooks() {
+// return a random unread book in the database
+app.get("/random", (req, res) => {
+  getBooks("To Read")
+    .then((books) => {
+      const randomBook = generateRandomBook(books);
+      let unreadBook = extractBookInfo(randomBook);
+      res.render("home", { data: [unreadBook] });
+    })
+    .catch((e) => console.log(e));
+});
+
+// return all books in database
+async function getAllBooks() {
+  const response = await notion.databases.query({ database_id: databaseId });
+  return response.results;
+}
+
+// return books with specific status ("Completed", "To Read", or "In Progress")
+async function getBooks(status) {
   const response = await notion.databases.query({
     database_id: databaseId,
     filter: {
       property: "Status",
       select: {
-        equals: "To Read", // "In Progress", "To Read", "Completed"
+        equals: status,
       },
     },
     sorts: [
@@ -66,31 +98,6 @@ function generateRandomBook(books) {
   console.log(randomNumber);
   return randomBook;
 }
-
-app.get("/", (req, res) => {
-  getBooks()
-    .then((books) => {
-      let unreadBooks = [];
-      for (let i = 0; i < books.length; i++) {
-        let book = response.results[i];
-        let bookInfo = extractBookInfo(book);
-        books.push(bookInfo);
-      }
-      res.render("home", { data: unreadBooks });
-    })
-    .catch((e) => console.log(e));
-});
-
-// return a random unread book in the database
-app.get("/random", (req, res) => {
-  getBooks()
-    .then((books) => {
-      const randomBook = generateRandomBook(books);
-      let unreadBook = extractBookInfo(randomBook);
-      res.render("home", { data: [unreadBook] });
-    })
-    .catch((e) => console.log(e));
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, console.log(`Server running on port ${PORT}...`));
