@@ -44,17 +44,14 @@ async function get_books(res) {
 // get title, book cover, and author from a book record in database
 function extractBookInfo(book) {
   let bookProps = book.properties;
-  let title = bookProps["Title"].title[0].plain_text;
+  let title = bookProps["Title"].title[0];
+  title = title ? title.plain_text : "Unknown";
 
-  let bookCover = "https://via.placeholder.com/150";
-  if (bookProps["Book Cover"].files.length !== 0) {
-    bookCover = bookProps["Book Cover"].files[0].name;
-  }
+  let bookCover = bookProps["Book Cover"].files[0];
+  bookCover = bookCover ? bookCover.name : "https://via.placeholder.com/150";
 
-  let author = "";
-  if (book.properties["Author"].rich_text.length !== 0) {
-    author = book.properties["Author"].rich_text[0].plain_text;
-  }
+  let author = bookProps["Author"].rich_text[0];
+  author = author ? author.plain_text : "Unknown";
 
   return { title: title, bookCover: bookCover, author: author };
 }
