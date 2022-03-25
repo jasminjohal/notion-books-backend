@@ -32,26 +32,31 @@ async function get_books(res) {
     let data = [];
     for (let i = 0; i < response.results.length; i++) {
       let book = response.results[i];
-      let title = book.properties["Title"].title[0].plain_text;
-
-      let book_cover = "https://via.placeholder.com/150";
-      if (book.properties["Book Cover"].files.length !== 0) {
-        book_cover = book.properties["Book Cover"].files[0].name;
-      }
-
-      let author = "";
-      if (book.properties["Author"].rich_text.length !== 0) {
-        author = book.properties["Author"].rich_text[0].plain_text;
-      }
-
-      data.push({ title: title, book_cover: book_cover, author: author });
+      let bookInfo = extractBookInfo(book);
+      data.push(bookInfo);
     }
-    // console.log(data);
     res.render("home", { data: data });
-    // return data;
   } catch (error) {
     console.error(error.body);
   }
+}
+
+// get title, book cover, and author from a book record in database
+function extractBookInfo(book) {
+  let bookProps = book.properties;
+  let title = bookProps["Title"].title[0].plain_text;
+
+  let bookCover = "https://via.placeholder.com/150";
+  if (bookProps["Book Cover"].files.length !== 0) {
+    bookCover = bookProps["Book Cover"].files[0].name;
+  }
+
+  let author = "";
+  if (book.properties["Author"].rich_text.length !== 0) {
+    author = book.properties["Author"].rich_text[0].plain_text;
+  }
+
+  return { title: title, bookCover: bookCover, author: author };
 }
 
 app.get("/", function (req, res) {
