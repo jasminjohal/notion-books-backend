@@ -11,6 +11,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, "/public")));
 
 const { data } = require("jquery");
+const axios = require("axios");
 
 app.engine("handlebars", exphbs());
 app.set("view engine", "handlebars");
@@ -30,13 +31,42 @@ app.get("/", (req, res) => {
     .catch((e) => console.log(e));
 });
 
+app.get("/test", (req, res) => {});
+
 // return a random unread book in the database
 app.get("/random", (req, res) => {
   getBooks("To Read")
     .then((books) => {
       const randomBook = generateRandomBook(books);
       let unreadBook = extractBookInfo(randomBook);
-      res.render("home", { data: [unreadBook] });
+      axios
+        .get(
+          `https://www.googleapis.com/books/v1/volumes?q=intitle:${unreadBook.title}`
+        )
+        .then((response) => {
+          let description = "";
+          let isbn = "";
+          let googleBookCover = "";
+          if (response.data.items.length !== 0) {
+            let firstResult = response.data.items[0].volumeInfo;
+            description = firstResult.description;
+            let isbnNos = firstResult.industryIdentifiers;
+            for (let i = 0; i < isbnNos.length; i++) {
+              if (isbnNos[i].type === "ISBN_13") {
+                isbn = isbnNos[i].identifier;
+              }
+            }
+            googleBookCover = firstResult.imageLinks.thumbnail;
+          }
+          if (googleBookCover) {
+            unreadBook.bookCover = googleBookCover;
+          }
+          unreadBook.description = description;
+          unreadBook.isbn = isbn;
+
+          res.render("random", unreadBook);
+        })
+        .catch((e) => console.log(e));
     })
     .catch((e) => console.log(e));
 });
@@ -95,7 +125,6 @@ function extractBookInfo(book) {
 function generateRandomBook(books) {
   const randomNumber = Math.floor(Math.random() * books.length);
   const randomBook = books[randomNumber];
-  console.log(randomNumber);
   return randomBook;
 }
 

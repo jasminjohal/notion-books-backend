@@ -1,0 +1,26 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+
+    <div class="col-2">
+      <img src={{bookCover}} class="card-img" alt="book cover for {{title}}" />
+    </div>
+
+    <div class="col-4">
+      <h1>{{title}}</h1>
+      <h2>By: {{author}}</h2>
+      <p>ISBN-13: {{isbn}}</p>
+      <p><strong>Description:</strong> {{description}}</p>
+      <h3>Owned?</h3>
+      {{#if ownedFormats}}
+        <ul class="owned-formats">
+          {{#each ownedFormats}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p>Not owned</p>
+      {{/if}}
+    </div>
+
+  </div>
+</div>
