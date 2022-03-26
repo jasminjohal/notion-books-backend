@@ -20,13 +20,30 @@ app.set("view engine", "handlebars");
 app.get("/", (req, res) => {
   getBooks("To Read")
     .then((books) => {
-      let unreadBooks = [];
-      for (let i = 0; i < books.length; i++) {
-        let book = books[i];
-        let bookInfo = extractBookInfo(book);
-        unreadBooks.push(bookInfo);
-      }
-      res.render("home", { data: unreadBooks });
+      let processedBooks = processBooks(books);
+      res.render("home", { data: processedBooks });
+    })
+    .catch((e) => console.log(e));
+});
+
+// return concise version of Notion API JSON response
+function processBooks(books) {
+  let processedBooks = [];
+  for (let i = 0; i < books.length; i++) {
+    let book = books[i];
+    let bookInfo = extractBookInfo(book);
+    processedBooks.push(bookInfo);
+  }
+  return processedBooks;
+}
+
+// return all books read in a particular year
+app.get("/year/:year", (req, res) => {
+  getBooksByYear(req.params.year)
+    .then((books) => {
+      let processedBooks = processBooks(books);
+      //   res.render("home", { data: processedBooks });
+      res.send(processedBooks);
     })
     .catch((e) => console.log(e));
 });
@@ -85,6 +102,42 @@ async function getBooks(status) {
       select: {
         equals: status,
       },
+    },
+    sorts: [
+      {
+        property: "Title",
+        direction: "descending",
+      },
+    ],
+  });
+  return response.results;
+}
+
+// return books read in specific year
+async function getBooksByYear(year) {
+  const response = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      and: [
+        {
+          property: "Status",
+          select: {
+            equals: "Completed",
+          },
+        },
+        {
+          property: "End Date",
+          date: {
+            on_or_after: `${year}-01-01`,
+          },
+        },
+        {
+          property: "End Date",
+          date: {
+            on_or_before: `${year}-12-31`,
+          },
+        },
+      ],
     },
     sorts: [
       {
