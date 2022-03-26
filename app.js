@@ -26,17 +26,6 @@ app.get("/", (req, res) => {
     .catch((e) => console.log(e));
 });
 
-// return concise version of Notion API JSON response
-function processBooks(books) {
-  let processedBooks = [];
-  for (let i = 0; i < books.length; i++) {
-    let book = books[i];
-    let bookInfo = extractBookInfo(book);
-    processedBooks.push(bookInfo);
-  }
-  return processedBooks;
-}
-
 // return all books read in a particular year
 app.get("/year/:year", (req, res) => {
   getBooksByYear(req.params.year)
@@ -172,6 +161,19 @@ function extractBookInfo(book) {
     ownedFormats: ownedFormats,
     url: book.url,
   };
+}
+
+// return concise version of Notion API JSON response
+function processBooks(books) {
+  let processedBooks = [];
+
+  for (let i = 0; i < books.length; i++) {
+    let book = books[i];
+    let bookInfo = extractBookInfo(book);
+    processedBooks.push(bookInfo);
+  }
+
+  return processedBooks;
 }
 
 // return a random book from a list of books
