@@ -21,7 +21,8 @@ app.get("/", (req, res) => {
   getBooks("To Read")
     .then((books) => {
       let processedBooks = processBooks(books);
-      res.render("home", { data: processedBooks });
+      //   res.render("home", { data: processedBooks });
+      res.send(processedBooks);
     })
     .catch((e) => console.log(e));
 });
@@ -69,7 +70,8 @@ app.get("/random", (req, res) => {
           unreadBook.description = description;
           unreadBook.isbn = isbn;
 
-          res.render("random", unreadBook);
+          //   res.render("random", unreadBook);
+          res.send(unreadBook);
         })
         .catch((e) => console.log(e));
     })
