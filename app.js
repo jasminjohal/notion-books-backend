@@ -78,6 +78,18 @@ app.get("/random", (req, res) => {
     .catch((e) => console.log(e));
 });
 
+app.get("/genres", (req, res) => {
+  getBooks("To Read")
+    .then((books) => {
+      getGenres(books)
+        .then((genres) => {
+          res.send({ genres: [...genres] });
+        })
+        .catch((e) => console.log(e));
+    })
+    .catch((e) => console.log(e));
+});
+
 // return all books in database
 async function getAllBooks() {
   const response = await notion.databases.query({ database_id: databaseId });
@@ -102,6 +114,22 @@ async function getBooks(status) {
     ],
   });
   return response.results;
+}
+
+// returns a list of unique genres for the passed books
+async function getGenres(books) {
+  let genres = new Set();
+
+  for (let i = 0; i < books.length; i++) {
+    let book = books[i];
+    let bookProps = book.properties;
+    const bookGenres = bookProps.Genres.multi_select;
+    for (let j = 0; j < bookGenres.length; j++) {
+      genres.add(bookGenres[j].name);
+    }
+  }
+
+  return [...genres];
 }
 
 // return books read in specific year
