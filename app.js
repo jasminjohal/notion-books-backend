@@ -38,56 +38,48 @@ app.get("/year/:year", (req, res) => {
     .catch((e) => console.log(e));
 });
 
-// return a random unread book in the database
-app.get("/random", (req, res) => {
-  getBooks("To Read")
-    .then((books) => {
-      const randomBook = generateRandomBook(books);
-      let unreadBook = extractBookInfo(randomBook);
-      axios
-        .get(
-          `https://www.googleapis.com/books/v1/volumes?q=intitle:${unreadBook.title}`
-        )
-        .then((response) => {
-          let description = "";
-          let isbn = "";
-          let googleBookCover = "";
-          if (response.data.items.length !== 0) {
-            let firstResult = response.data.items[0].volumeInfo;
-            description = firstResult.description;
-            let isbnNos = firstResult.industryIdentifiers;
-            for (let i = 0; i < isbnNos.length; i++) {
-              if (isbnNos[i].type === "ISBN_13") {
-                isbn = isbnNos[i].identifier;
-              }
-            }
-            googleBookCover = firstResult.imageLinks.thumbnail;
-          }
-          // overrides existing book cover with Google Books API book cover
-          if (googleBookCover) {
-            unreadBook.bookCover = googleBookCover;
-          }
-          unreadBook.description = description;
-          unreadBook.isbn = isbn;
+// mutates passed book object by adding description & ISBN-13 from Google Books API and
+// overwriting book cover with book cover from Google Books API
+async function getGoogleAPIInfo(book) {
+  const response = await axios.get(
+    `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.title}`
+  );
 
-          //   res.render("random", unreadBook);
-          res.send(unreadBook);
-        })
-        .catch((e) => console.log(e));
-    })
-    .catch((e) => console.log(e));
+  let description = "";
+  let isbn = "";
+  let googleBookCover = "";
+  if (response.data.items.length !== 0) {
+    let firstResult = response.data.items[0].volumeInfo;
+    description = firstResult.description;
+    let isbnNos = firstResult.industryIdentifiers;
+    for (let i = 0; i < isbnNos.length; i++) {
+      if (isbnNos[i].type === "ISBN_13") {
+        isbn = isbnNos[i].identifier;
+      }
+    }
+    googleBookCover = firstResult.imageLinks.thumbnail;
+  }
+  // overrides existing book cover with Google Books API book cover
+  if (googleBookCover) {
+    book.bookCover = googleBookCover;
+  }
+  book.description = description;
+  book.isbn = isbn;
+}
+
+// return a random unread book in the database
+app.get("/random", async (req, res) => {
+  let unreadBooks = await getBooks("To Read");
+  let randomBook = await generateRandomBook(unreadBooks);
+  randomBook = extractBookInfo(randomBook);
+  await getGoogleAPIInfo(randomBook);
+  res.send(randomBook);
 });
 
-app.get("/genres", (req, res) => {
-  getBooks("To Read")
-    .then((books) => {
-      getGenres(books)
-        .then((genres) => {
-          res.send({ genres: genres });
-        })
-        .catch((e) => console.log(e));
-    })
-    .catch((e) => console.log(e));
+app.get("/genres", async (req, res) => {
+  let unreadBooks = await getBooks("To Read");
+  let genres = await getGenres(unreadBooks);
+  res.send({ genres: genres });
 });
 
 // return all books in database
