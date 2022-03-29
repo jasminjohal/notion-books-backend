@@ -83,7 +83,7 @@ app.get("/genres", (req, res) => {
     .then((books) => {
       getGenres(books)
         .then((genres) => {
-          res.send({ genres: [...genres] });
+          res.send({ genres: genres });
         })
         .catch((e) => console.log(e));
     })
