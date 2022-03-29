@@ -17,62 +17,25 @@ app.engine("handlebars", exphbs());
 app.set("view engine", "handlebars");
 
 // return all unread books in database
-app.get("/", (req, res) => {
-  getBooks("To Read")
-    .then((books) => {
-      let processedBooks = processBooks(books);
-      //   res.render("home", { data: processedBooks });
-      res.send(processedBooks);
-    })
-    .catch((e) => console.log(e));
+app.get("/", async (req, res) => {
+  let unreadBooks = await getBooks("To Read");
+  let processedBooks = processBooks(unreadBooks);
+  res.send(processedBooks);
 });
 
 // return all books read in a particular year
-app.get("/year/:year", (req, res) => {
-  getBooksByYear(req.params.year)
-    .then((books) => {
-      let processedBooks = processBooks(books);
-      //   res.render("home", { data: processedBooks });
-      res.send(processedBooks);
-    })
-    .catch((e) => console.log(e));
+app.get("/year/:year", async (req, res) => {
+  let books = await getBooksByYear(req.params.year);
+  let processedBooks = processBooks(books);
+  res.send(processedBooks);
 });
-
-// mutates passed book object by adding description & ISBN-13 from Google Books API and
-// overwriting book cover with book cover from Google Books API
-async function getGoogleAPIInfo(book) {
-  const response = await axios.get(
-    `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.title}`
-  );
-
-  let description = "";
-  let isbn = "";
-  let googleBookCover = "";
-  if (response.data.items.length !== 0) {
-    let firstResult = response.data.items[0].volumeInfo;
-    description = firstResult.description;
-    let isbnNos = firstResult.industryIdentifiers;
-    for (let i = 0; i < isbnNos.length; i++) {
-      if (isbnNos[i].type === "ISBN_13") {
-        isbn = isbnNos[i].identifier;
-      }
-    }
-    googleBookCover = firstResult.imageLinks.thumbnail;
-  }
-  // overrides existing book cover with Google Books API book cover
-  if (googleBookCover) {
-    book.bookCover = googleBookCover;
-  }
-  book.description = description;
-  book.isbn = isbn;
-}
 
 // return a random unread book in the database
 app.get("/random", async (req, res) => {
   let unreadBooks = await getBooks("To Read");
   let randomBook = await generateRandomBook(unreadBooks);
   randomBook = extractBookInfo(randomBook);
-  await getGoogleAPIInfo(randomBook);
+  await updateWithGoogleAPIInfo(randomBook);
   res.send(randomBook);
 });
 
@@ -183,6 +146,35 @@ function extractBookInfo(book) {
     ownedFormats: ownedFormats,
     url: book.url,
   };
+}
+
+// mutates passed book object by adding description & ISBN-13 from Google Books API and
+// overwriting book cover with book cover from Google Books API
+async function updateWithGoogleAPIInfo(book) {
+  const response = await axios.get(
+    `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.title}`
+  );
+
+  let description = "";
+  let isbn = "";
+  let googleBookCover = "";
+  if (response.data.items.length !== 0) {
+    let firstResult = response.data.items[0].volumeInfo;
+    description = firstResult.description;
+    let isbnNos = firstResult.industryIdentifiers;
+    for (let i = 0; i < isbnNos.length; i++) {
+      if (isbnNos[i].type === "ISBN_13") {
+        isbn = isbnNos[i].identifier;
+      }
+    }
+    googleBookCover = firstResult.imageLinks.thumbnail;
+  }
+  // overrides existing book cover with Google Books API book cover
+  if (googleBookCover) {
+    book.bookCover = googleBookCover;
+  }
+  book.description = description;
+  book.isbn = isbn;
 }
 
 // return concise version of Notion API JSON response
