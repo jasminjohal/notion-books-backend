@@ -39,6 +39,16 @@ app.get("/random", async (req, res) => {
   res.send(randomBook);
 });
 
+// return a random unread book of a particular genre in the database
+app.get("/random/:genre", async (req, res) => {
+  let unreadBooks = await getBooksByGenre(req.params.genre);
+  let randomBook = await generateRandomBook(unreadBooks);
+  randomBook = extractBookInfo(randomBook);
+  await updateWithGoogleAPIInfo(randomBook);
+  res.send(randomBook);
+});
+
+// return unique genres in the database
 app.get("/genres", async (req, res) => {
   let unreadBooks = await getBooks("To Read");
   let genres = await getGenres(unreadBooks);
@@ -120,6 +130,38 @@ async function getBooksByYear(year) {
       },
     ],
   });
+
+  return response.results;
+}
+
+// return unread books of a particular genre
+async function getBooksByGenre(genre) {
+  const response = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      and: [
+        {
+          property: "Status",
+          select: {
+            equals: "To Read",
+          },
+        },
+        {
+          property: "Genres",
+          multi_select: {
+            contains: genre,
+          },
+        },
+      ],
+    },
+    sorts: [
+      {
+        property: "Title",
+        direction: "descending",
+      },
+    ],
+  });
+
   return response.results;
 }
 
