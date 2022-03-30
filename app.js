@@ -204,12 +204,17 @@ async function updateWithGoogleAPIInfo(book) {
     let firstResult = response.data.items[0].volumeInfo;
     description = firstResult.description;
     let isbnNos = firstResult.industryIdentifiers;
-    for (let i = 0; i < isbnNos.length; i++) {
-      if (isbnNos[i].type === "ISBN_13") {
-        isbn = isbnNos[i].identifier;
+    if (isbnNos) {
+      for (let i = 0; i < isbnNos.length; i++) {
+        if (isbnNos[i].type === "ISBN_13") {
+          isbn = isbnNos[i].identifier;
+        }
       }
     }
-    googleBookCover = firstResult.imageLinks.thumbnail;
+
+    if (firstResult.imageLinks) {
+      googleBookCover = firstResult.imageLinks.thumbnail;
+    }
   }
   // overrides existing book cover with Google Books API book cover
   if (googleBookCover) {
