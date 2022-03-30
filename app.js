@@ -200,7 +200,7 @@ async function updateWithGoogleAPIInfo(book) {
   let description = "";
   let isbn = "";
   let googleBookCover = "";
-  if (response.data.items.length !== 0) {
+  if (response.data.items && response.data.items.length !== 0) {
     let firstResult = response.data.items[0].volumeInfo;
     description = firstResult.description;
     let isbnNos = firstResult.industryIdentifiers;
