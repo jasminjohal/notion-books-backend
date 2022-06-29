@@ -16,20 +16,6 @@ const axios = require("axios");
 app.engine("handlebars", exphbs());
 app.set("view engine", "handlebars");
 
-// return all unread books in database
-app.get("/", async (req, res) => {
-  let unreadBooks = await getBooks("To Read");
-  let processedBooks = processBooks(unreadBooks);
-  res.send(processedBooks);
-});
-
-// return all books read in a particular year
-app.get("/year/:year", async (req, res) => {
-  let books = await getBooksByYear(req.params.year);
-  let processedBooks = processBooks(books);
-  res.send(processedBooks);
-});
-
 // return a random unread book in the database
 app.get("/random", async (req, res) => {
   let unreadBooks = await getBooks("To Read");
@@ -54,12 +40,6 @@ app.get("/genres", async (req, res) => {
   let genres = await getGenres(unreadBooks);
   res.send({ genres: genres });
 });
-
-// return all books in database
-async function getAllBooks() {
-  const response = await notion.databases.query({ database_id: databaseId });
-  return response.results;
-}
 
 // return books with specific status ("Completed", "To Read", or "In Progress")
 async function getBooks(status) {
@@ -95,43 +75,6 @@ async function getGenres(books) {
   }
 
   return [...genres];
-}
-
-// return books read in specific year
-async function getBooksByYear(year) {
-  const response = await notion.databases.query({
-    database_id: databaseId,
-    filter: {
-      and: [
-        {
-          property: "Status",
-          select: {
-            equals: "Completed",
-          },
-        },
-        {
-          property: "End Date",
-          date: {
-            on_or_after: `${year}-01-01`,
-          },
-        },
-        {
-          property: "End Date",
-          date: {
-            on_or_before: `${year}-12-31`,
-          },
-        },
-      ],
-    },
-    sorts: [
-      {
-        property: "Title",
-        direction: "descending",
-      },
-    ],
-  });
-
-  return response.results;
 }
 
 // return unread books of a particular genre
@@ -222,19 +165,6 @@ async function updateWithGoogleAPIInfo(book) {
   }
   book.description = description;
   book.isbn = isbn;
-}
-
-// return concise version of Notion API JSON response
-function processBooks(books) {
-  let processedBooks = [];
-
-  for (let i = 0; i < books.length; i++) {
-    let book = books[i];
-    let bookInfo = extractBookInfo(book);
-    processedBooks.push(bookInfo);
-  }
-
-  return processedBooks;
 }
 
 // return a random book from a list of books
