@@ -10,7 +10,7 @@ const app = express();
 const axios = require("axios");
 
 // return a random unread book in the database
-app.get("/random", async (req, res) => {
+app.get("/random-tbr-book", async (req, res) => {
   let unreadBooks = await getBooks("To Read");
   let randomBook = await generateRandomBook(unreadBooks);
   randomBook = extractBookInfo(randomBook);
@@ -19,16 +19,16 @@ app.get("/random", async (req, res) => {
 });
 
 // return a random unread book of a particular genre in the database
-app.get("/random/:genre", async (req, res) => {
-  let unreadBooks = await getBooksByGenre(req.params.genre);
+app.get("/random-tbr-book/:genre", async (req, res) => {
+  let unreadBooks = await getTBRBooksByGenre(req.params.genre);
   let randomBook = await generateRandomBook(unreadBooks);
   randomBook = extractBookInfo(randomBook);
   await updateWithGoogleAPIInfo(randomBook);
   res.send(randomBook);
 });
 
-// return unique genres in the database
-app.get("/genres", async (req, res) => {
+// return unique genres of unread books in the database
+app.get("/tbr-genres", async (req, res) => {
   let unreadBooks = await getBooks("To Read");
   let genres = await getGenres(unreadBooks);
   res.send({ genres: genres });
@@ -71,7 +71,7 @@ async function getGenres(books) {
 }
 
 // return unread books of a particular genre
-async function getBooksByGenre(genre) {
+async function getTBRBooksByGenre(genre) {
   const response = await notion.databases.query({
     database_id: databaseId,
     filter: {
