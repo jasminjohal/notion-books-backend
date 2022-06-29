@@ -6,15 +6,8 @@ const notion = new Client({ auth: process.env.NOTION_KEY });
 const databaseId = process.env.NOTION_DATABASE_ID;
 
 const express = require("express");
-const exphbs = require("express-handlebars");
 const app = express();
-app.use(express.static(path.join(__dirname, "/public")));
-
-const { data } = require("jquery");
 const axios = require("axios");
-
-app.engine("handlebars", exphbs());
-app.set("view engine", "handlebars");
 
 // return a random unread book in the database
 app.get("/random", async (req, res) => {
