@@ -1,6 +1,8 @@
 # Notion Random Book Generator (Backend)
 
-I have a database of books in my Notion workspace named `Reading Log`. It contains all the books I've read, the books I'm currently reading, and the books on my "TBR" (To Be Read) list. My TBR list is quite extensive so it's overwhelming to pick a book to read. I developed a random book generation application to address this problem. This is the backend for the application. It supports GET requests for three endpoints:
+## About
+
+I have a database of books in my Notion workspace named `Reading Log`. It contains all the books I've read, the books I'm currently reading, and the books on my "TBR" (To Be Read) list. My TBR list is quite extensive so it's overwhelming to pick a book to read. I developed a random book generation application to address this problem. This is the backend for the application. Please refer to [this repo](https://github.com/jasminjohal/notion-random-book-frontend) for the frontend implementation. The backend supports GET requests for three endpoints:
 
 - `/random-tbr-book`
 - `/random-tbr-book/:genre`
